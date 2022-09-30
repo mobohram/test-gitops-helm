@@ -15,6 +15,8 @@ jobs:
       nonprod: ${{ steps.filter.outputs.nonprod }}
     steps:
     # For pull requests it's not necessary to checkout the code
+    - name: Checkout
+      uses: actions/checkout@v3
     - uses: dorny/paths-filter@v2
       id: filter
       with:
@@ -26,7 +28,7 @@ jobs:
   shared:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.shared == 'true' }}
-    name: "Terraform"
+    name: "Shared Job"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -41,7 +43,7 @@ jobs:
   nonprod:
     needs: detect-changes
     if: ${{ needs.detect-changes.outputs.nonprod == 'true' }}
-    name: "Terraform"
+    name: "Nonprod Job"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
