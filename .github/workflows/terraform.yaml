@@ -1,0 +1,50 @@
+name: "Test Multi-Path Environments"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      shared: ${{ steps.filter.outputs.shared }}
+      nonprod: ${{ steps.filter.outputs.nonprod }}
+    steps:
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          shared:
+            - 'shared/**'
+          nonprod:
+            - 'nonprod/**'
+  shared:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.shared == 'true' }}
+    name: "Terraform"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./shared
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run log
+        run: echo "a change in shared was detected"
+
+  nonprod:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.nonprod == 'true' }}
+    name: "Terraform"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run log
+        run: echo "a change in nonprod was detected"
